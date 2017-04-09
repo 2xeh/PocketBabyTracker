@@ -1,55 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp"
-    android:weightSum="1">
-
-    <TextView
+    android:layout_width="match_parent">
+    >
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/tv_baby_name"
-        android:id="@+id/tvBabyName"
-        />
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/new_baby_name"
-        />
+        android:layout_height="match_parent"
+        android:padding="20dp"
+        android:weightSum="1">
 
-    <TextView
-        android:layout_marginTop="30dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/tv_biological_sex"
-        android:id="@+id/tvBioSex"
-        />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tv_baby_name"
+            android:id="@+id/tvBabyName"
+            />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/new_baby_name"
+            android:id="@+id/etBabyName"
+            />
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:layout_marginTop="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tv_biological_sex"
+            android:id="@+id/tvBioSex"
+            />
 
-    <TextView
-        android:layout_marginTop="30dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/tv_birthday"
-        android:id="@+id/tvBirthday"
-        />
+        <Spinner
+            android:id="@+id/spBioSex"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/biological_sex_array"
+            android:overScrollMode="always" />
 
-    <Spinner
-        android:id="@+id/spinner2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:isScrollContainer="true"
-        android:spinnerMode="dialog"
-        android:transitionGroup="false"
-        tools:isScrollContainer="true"
-        tools:splitMotionEvents="true" />
+        <TextView
+            android:layout_marginTop="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tv_birthday"
+            android:id="@+id/tvBirthday"
+            />
 
+        <DatePicker
+            android:id="@+id/dpBirthDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:datePickerMode="spinner"
+            android:calendarViewShown="false"
+            tools:calendarViewShown="false"
+            tools:targetApi="21" />
 
-</LinearLayout>
+        <TimePicker
+            android:id="@+id/tpBirthTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:timePickerMode="spinner"
+            tools:targetApi="21"
+            />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/bt_add_baby"
+            android:onClick="addBaby"
+            />
+
+    </LinearLayout>
+</ScrollView>

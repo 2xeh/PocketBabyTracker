@@ -1,15 +1,13 @@
 package com.example.pocketbabytracker;
 
-import java.util.Date;
-
 public class BabyElements {
 
     private String babyName;
     private String gender;
-    private Date birthday;
+    private String birthday;
 
     // construct without int id
-    public BabyElements(String babyName, String gender, Date birthday) {
+    public BabyElements(String babyName, String gender, String birthday) {
         this.babyName = babyName;
         this.gender = gender;
         this.birthday = birthday;
@@ -23,6 +21,8 @@ public class BabyElements {
     public void setBabyName(String babyName) { this.babyName = babyName; }
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
-    public Date getBirthday () { return birthday; }
-    public void setBirthday(Date birthday) { this.birthday = birthday; }
+    public String getBirthday () { return birthday; }
+    public void setBirthday(String birthday) { this.birthday = birthday; }
+
+
 }

@@ -9,5 +9,12 @@
 
     <string name="tv_birthday">Birth Date</string>
 
+    <string-array name="biological_sex_array">
+        <item>Girl</item>
+        <item>Boy</item>
+    </string-array>
+
+    <string name="bt_add_baby">Add Baby</string>
+
 
 </resources>

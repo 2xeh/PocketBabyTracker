@@ -2,6 +2,8 @@ package com.example.pocketbabytracker;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
+import android.util.Log;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -38,6 +40,28 @@ public class DatabaseQuery extends DatabaseObject{
         super(context);
     }
 
+
+    // Let's persist a baby
+    public boolean setNewBaby(BabyElements newBaby){
+        boolean result = false;
+
+        // Query to run, and get the cursor
+        String insertStatement = "INSERT INTO " + BABIES_TABLE + " (" + BABIES_COL_BABY_NAME + ", " + BABIES_COL_GENDER + ", " + BABIES_COL_BIRTHDAY + ") " +
+                "VALUES ('" + newBaby.getBabyName() + "','" + newBaby.getGender() + "','" + newBaby.getBirthday() + "');";
+
+        // run the query
+        try {
+            this.getDbConnection().execSQL(insertStatement);
+            result = true;
+
+        } catch (SQLException e) {
+            result = false;
+            Log.d("Andrea", "SQLException inserting newBaby into database" + e.getMessage());
+        }
+
+        return result;
+    }
+
     // let's get all of the babies out of the database
     public List<BabyElements> getAllBabies(){
 
@@ -58,10 +82,10 @@ public class DatabaseQuery extends DatabaseObject{
                 String gender = cursor.getString(cursor.getColumnIndexOrThrow(BABIES_COL_GENDER));
                 String birthdayString = cursor.getString(cursor.getColumnIndexOrThrow(BABIES_COL_BIRTHDAY));
 
-                Date birthday = convertStringToDate(birthdayString);
+                //Date birthday = convertStringToDate(birthdayString);
 
                 // I don't think we need to filter the results here...
-                babyElements.add(new BabyElements(babyName, gender, birthday));
+                babyElements.add(new BabyElements(babyName, gender, birthdayString));
 
             }while (cursor.moveToNext());
         }
