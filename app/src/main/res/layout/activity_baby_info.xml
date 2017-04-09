@@ -41,25 +41,15 @@
         android:id="@+id/tvBirthday"
         />
 
-    <DatePicker
-        android:id="@+id/datePicker"
-        android:layout_width="345dp"
-        android:layout_height="140dp"
-        android:layout_weight="0.16"
-        android:datePickerMode="spinner"
-        android:splitMotionEvents="false"
-        tools:calendarViewShown="false" />
-
-    <TimePicker
-        android:id="@+id/timePicker"
+    <Spinner
+        android:id="@+id/spinner2"
         android:layout_width="match_parent"
-        android:layout_height="126dp"
+        android:layout_height="wrap_content"
         android:isScrollContainer="true"
-        android:nestedScrollingEnabled="false"
-        android:timePickerMode="spinner"
+        android:spinnerMode="dialog"
+        android:transitionGroup="false"
         tools:isScrollContainer="true"
-        tools:nestedScrollingEnabled="false"
-        android:layout_weight="0.21" />
+        tools:splitMotionEvents="true" />
 
 
 </LinearLayout>

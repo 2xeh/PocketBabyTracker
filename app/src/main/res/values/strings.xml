@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">PocketBabyTracker</string>
+    <string name="tv_baby_name">Baby\'s Name</string>
+    <string name="new_baby_name">your baby\'s name</string>
+
+    <string name="tv_biological_sex">Biological Sex</string>
+    <string name="tv_sex_male">Boy</string>
+    <string name="tv_sex_female">Girl</string>
+
+    <string name="tv_birthday">Birth Date</string>
+
+
+</resources>

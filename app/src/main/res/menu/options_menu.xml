@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".MainActivity">
+
+    <item android:id="@+id/itBaby1"
+        android:title="baby1"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        />
+
+    <item android:id="@+id/itBaby2"
+        android:title="baby2"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        />
+
+    <item android:id="@+id/itBaby3"
+        android:title="baby3"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        />
+
+</menu>
