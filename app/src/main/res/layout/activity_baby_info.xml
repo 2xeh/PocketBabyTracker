@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+    android:weightSum="1">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_baby_name"
+        android:id="@+id/tvBabyName"
+        />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/new_baby_name"
+        />
+
+    <TextView
+        android:layout_marginTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_biological_sex"
+        android:id="@+id/tvBioSex"
+        />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_marginTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_birthday"
+        android:id="@+id/tvBirthday"
+        />
+
+    <DatePicker
+        android:id="@+id/datePicker"
+        android:layout_width="345dp"
+        android:layout_height="140dp"
+        android:layout_weight="0.16"
+        android:datePickerMode="spinner"
+        android:splitMotionEvents="false"
+        tools:calendarViewShown="false" />
+
+    <TimePicker
+        android:id="@+id/timePicker"
+        android:layout_width="match_parent"
+        android:layout_height="126dp"
+        android:isScrollContainer="true"
+        android:nestedScrollingEnabled="false"
+        android:timePickerMode="spinner"
+        tools:isScrollContainer="true"
+        tools:nestedScrollingEnabled="false"
+        android:layout_weight="0.21" />
+
+
+</LinearLayout>
