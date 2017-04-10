@@ -16,12 +16,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
 
     ListView lvMainMenu;
     private static final int MENU_FIRST = Menu.FIRST;
+    private DatabaseQuery databaseQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         lvMainMenu = (ListView) findViewById(R.id.lvMainMenu);
+
+        // set the databaseQuery
+        databaseQuery = new DatabaseQuery(this);
 
         // Let's fill that list view
         final ArrayList<MainActivityMenuOptions> menuItems = new ArrayList<MainActivityMenuOptions>();
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
 
     } // end of onCreate()
 
@@ -109,25 +115,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-        // fill in options menu with items
-//        <menu xmlns:android="http://schemas.android.com/apk/res/android"
-//        xmlns:tools="http://schemas.android.com/tools"
-//        xmlns:app="http://schemas.android.com/apk/res-auto"
-//        tools:context=".MainActivity">
-//
-//    <item android:id="@+id/itBaby1"
-//        android:title="baby1"
-//        android:orderInCategory="100"
-//        app:showAsAction="never"
-//                />
-
         // let's try to get access to the menu
-        // these don't have id's
         int menuCounter = MENU_FIRST;
-        menu.add(0, menuCounter++, Menu.NONE, "baby 4");
-        menu.add(0, menuCounter++, Menu.NONE, "baby 5");
 
+        List<BabyElements> babies = databaseQuery.getAllBabies();
+
+        // add each baby to the menu
+        for(BabyElements baby : babies){
+            menu.add(0, menuCounter++, Menu.NONE, baby.getBabyName());
+        }
 
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.options_menu, menu);
@@ -140,10 +136,10 @@ public class MainActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        String selectedBaby = item.getTitle().toString();
 
-
-
-        makeToast("clicked item id:" + id);
+        // TODO: put the baby_name into sharedPreferences or something meaningful
+        makeToast("item name clicked:" + selectedBaby);
 
 
 //        switch (id) {
