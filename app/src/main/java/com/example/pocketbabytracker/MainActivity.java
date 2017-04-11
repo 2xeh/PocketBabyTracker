@@ -2,8 +2,10 @@ package com.example.pocketbabytracker;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,16 +23,26 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String TAG = "Andrea-Main";
     ListView lvMainMenu;
+    TextView tvSelectedBaby;
     private static final int MENU_FIRST = Menu.FIRST;
     private DatabaseQuery databaseQuery;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d(TAG, "get the shared preferences");
+        sharedPreferences = this.getSharedPreferences("pocketBaby", this.MODE_PRIVATE);
+
         lvMainMenu = (ListView) findViewById(R.id.lvMainMenu);
+        tvSelectedBaby = (TextView) findViewById(R.id.tvSelectedBaby);
+
+        Log.d(TAG, "Getting child from preferences and setting on screen");
+        tvSelectedBaby.setText("Selected child: " + sharedPreferences.getString("babyName", ""));
 
         // set the databaseQuery
         databaseQuery = new DatabaseQuery(this);
@@ -61,9 +73,6 @@ public class MainActivity extends AppCompatActivity {
 
     } // end of onCreate()
 
-    public void startHtmlPdfRocketActivity(View view){
-        startActivity(new Intent(this, HtmlPdfRocketActivity.class));
-    }
 
     // An ArrayAdapter Blogs to use in the ListView
     private class MainActivityMenuOptionsAdapter extends ArrayAdapter<MainActivityMenuOptions> {
@@ -135,39 +144,22 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        String selectedBaby = item.getTitle().toString();
 
-        // TODO: put the baby_name into sharedPreferences or something meaningful
-        makeToast("item name clicked:" + selectedBaby);
+        String babyName = item.getTitle().toString();
+
+        tvSelectedBaby.setText("Selected child: " + babyName);
 
 
-//        switch (id) {
-//            case R.id.itSettings:
-//                // some toast
-//                //Toast.makeText(MainActivity.this, "Settings clicked. Coming in part b.", Toast.LENGTH_LONG).show();
-//                startSettingsActivity();
-//                break;
-//
-//            case R.id.itRefresh:
-//                updateSax();
-//                break;
-//
-//            case R.id.itCbcWhiteCoat:
-//                tvRssTitle.setText(RSSFeedEnum.getTitle(1));
-//                selectedFeed = CBC_WHITE_COAT_URL;
-//                updateSax();
-//                break;
-//
-//            case R.id.itCbcUnderInfluence:
-//                tvRssTitle.setText(RSSFeedEnum.getTitle(2));
-//                selectedFeed = CBC_UNDER_INFLUENCE_URL;
-//                updateSax();
-//                break;
-//
-//            default:
-//                break;
-//        }
+        // instantiate the SharedPreferences Editor and put in the new values
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("babyName", babyName);
+
+        // commit changes made by the editor
+        if (editor.commit()) {
+            // update a TextView?
+        } else {
+            makeToast("Unable to set baby.");
+        }
 
         return super.onOptionsItemSelected(item);
     }

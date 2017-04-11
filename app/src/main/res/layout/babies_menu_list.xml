@@ -5,6 +5,7 @@
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:padding="6dip"
+    android:minHeight="75dp"
     android:orientation="vertical">
 
     <TextView
@@ -14,7 +15,21 @@
         android:layout_weight="1"
         android:textSize="18sp"
         android:gravity="center_vertical"
-        android:minHeight="100dp"
         android:textAlignment="center"/>
+    <TextView
+        android:id="@+id/tvBabyBioSex"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:layout_weight="1"
+        android:ellipsize="marquee" />
+
+    <TextView
+        android:id="@+id/tvBabyBirthday"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:layout_weight="1"
+        android:ellipsize="marquee" />
 
 </LinearLayout>

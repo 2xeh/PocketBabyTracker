@@ -2,11 +2,13 @@ package com.example.pocketbabytracker;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -14,7 +16,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.View.MeasureSpec;
 
 import java.util.ArrayList;
 
@@ -22,8 +23,9 @@ public class BabyInfoActivity extends AppCompatActivity {
 
     private final String TAG = "Andrea-BabyInfo";
     private DatabaseQuery databaseQuery;
-
-    ListView lvBabyInfoBabies, lvBabyInfoControls;
+    private ListView lvBabyInfoBabies, lvBabyInfoControls;
+    private TextView tvBabyInfoSelected;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +34,23 @@ public class BabyInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_baby_info);
 
+        Log.d(TAG, "get the shared preferences");
+        sharedPreferences = this.getSharedPreferences("pocketBaby", this.MODE_PRIVATE);
+
         Log.d(TAG, "getting list views");
         lvBabyInfoBabies = (ListView) findViewById(R.id.lvBabyInfoBabies);
         lvBabyInfoControls = (ListView) findViewById(R.id.lvBabyInfoControls);
+        tvBabyInfoSelected = (TextView) findViewById(R.id.tvBabyInfoSelected);
 
-        // set the databaseQuery
+        Log.d(TAG, "Getting child from preferences and setting on screen");
+        tvBabyInfoSelected.setText("Selected child: " + sharedPreferences.getString("babyName", ""));
+
+
+        Log.d(TAG, "set the databaseQuery");
         databaseQuery = new DatabaseQuery(this);
+
+
+
 
 
         // CONTROLS LIST
@@ -88,7 +101,9 @@ public class BabyInfoActivity extends AppCompatActivity {
                 // TODO: edit the babies_menu_list to show baby data
                 // use int i to get the item out of the list
                 // babyItems.get(i).getBabyName();
-                makeToast("clicked" + babyItems.get(i).getBabyName());
+                String selectedBaby = babyItems.get(i).getBabyName();
+                saveToSharedPreferences(selectedBaby);
+                tvBabyInfoSelected.setText("Selected child: " + selectedBaby);
 
             }
         });
@@ -101,6 +116,24 @@ public class BabyInfoActivity extends AppCompatActivity {
     }
 
 
+    private void saveToSharedPreferences(String babyName) {
+
+        // instantiate the SharedPreferences Editor and put in the new values
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("babyName", babyName);
+
+        // commit changes made by the editor
+        if (editor.commit()) {
+            // update a TextView?
+        } else {
+            makeToast("Unable to set baby.");
+        }
+
+    }
+
+
+    // ListUtils thanks to StackOverflow user Hiren Patel
+    // http://stackoverflow.com/questions/17693578/android-how-to-display-2-listviews-in-one-activity-one-after-the-other
     public static class ListUtils {
         public static void setDynamicHeight(ListView mListView) {
             ListAdapter mListAdapter = mListView.getAdapter();
@@ -166,6 +199,10 @@ public class BabyInfoActivity extends AppCompatActivity {
 
                 // TODO: need to get a summary of baby info on the list from here, refer to RSS
                 header.setText(menuItem.getBabyName());
+
+                // TODO: can probably style the list item based on whether or not this is the selected baby
+
+
             }
             return view;
         }

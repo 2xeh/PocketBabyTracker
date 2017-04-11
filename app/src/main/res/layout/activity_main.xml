@@ -6,12 +6,14 @@
     android:layout_height="match_parent"
     >
 
-    <Button
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="test html to pdf"
-        android:onClick="startHtmlPdfRocketActivity"
+        android:id="@+id/tvSelectedBaby"
+        android:textSize="18dp"
+        android:minHeight="30dp"
         />
+
 
     <ListView
         android:layout_width="match_parent"
