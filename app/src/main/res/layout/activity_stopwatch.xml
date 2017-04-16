@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <Chronometer
+        android:id="@+id/chTestChronometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="36sp"
+        android:visibility="visible" />
+
+
+    <TextView
+        android:text="00:00:00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvSwLeft"
+        android:textSize="50dp"
+        android:textStyle="bold"
+        android:textColor="#009688"
+        />
+
+    <Button
+        android:text="Start Left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="41dp"
+        android:id="@+id/btSwStartLeft" />
+
+    <Button
+        android:text="Pause Left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btSwPauseLeft" />
+
+    <Button
+        android:text="Reset Left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btSwResetLeft" />
+
+    <Button
+        android:text="Save Lap Left"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:id="@+id/btSWSaveLapLeft"
+        />
+
+    <TextView
+        android:text="00:00:00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvSwRight"
+        android:textSize="50dp"
+        android:textStyle="bold"
+        android:textColor="#009688"
+        />
+
+    <Button
+        android:text="Start Right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="41dp"
+        android:id="@+id/btSwStartRight" />
+
+    <Button
+        android:text="Pause Right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btSwPauseRight" />
+
+    <Button
+        android:text="Reset Right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btSwResetRight" />
+
+    <Button
+        android:text="Save Lap Right"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:id="@+id/btSWSaveLapRight"
+        />
+
+</LinearLayout>

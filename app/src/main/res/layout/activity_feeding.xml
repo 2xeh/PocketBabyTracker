@@ -40,37 +40,36 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tvLeftTimer"
             android:text="Left: "
             android:textSize="18dp"
             android:minHeight="30dp"
             />
 
-        <Chronometer
-            android:id="@+id/chLeftTimer"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:textSize="14sp"
-            android:visibility="visible"
+            android:id="@+id/tvLeftTimer"
+            android:text="00:00"
+            android:textSize="24dp"
+            android:minHeight="30dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Right: "
+            android:textSize="18dp"
+            android:minHeight="30dp"
             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvRightTimer"
-            android:text="Right: "
-            android:textSize="18dp"
+            android:text="00:00"
+            android:textSize="24dp"
             android:minHeight="30dp"
             />
-
-        <Chronometer
-            android:id="@+id/chRightTimer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:textSize="14sp"
-            android:visibility="visible" />
 
 
     </LinearLayout>

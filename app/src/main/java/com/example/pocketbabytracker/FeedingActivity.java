@@ -3,6 +3,7 @@ package com.example.pocketbabytracker;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -30,19 +31,31 @@ public class FeedingActivity extends AppCompatActivity {
     // controls
     ListView lvFeedingMenu;
     TextView tvSelectedBabyFeeding;
-    Chronometer chMasterTimer, chLeftTimer, chRightTimer;
 
-    // flags
-    boolean isMasterTimerRunning = false,
-            isLeftTimerRunning = false,
-            isRightTimerRunning = false;
+    // Attributes for master timer (chronometer) -- we can only run one
+    boolean isMasterTimerRunning = false;
+    Chronometer chMasterTimer;
 
-    // data
+    // Attributes for Left Timer
+    boolean isLeftTimerRunning = false;
+    TextView tvLeftTimer;
+    Handler leftHandler;
+    long leftMillisTime, leftStartTime, leftTimeBuff, leftUpdateTime = 0L ;
+    int leftSeconds, leftMinutes, leftMillis;
+
+    // Attributes for Right Timer
+    boolean isRightTimerRunning = false;
+    TextView tvRightTimer;
+    Handler rightHandler;
+    long rightMillisTime, rightStartTime, rightTimeBuff, rightUpdateTime = 0L ;
+    int rightSeconds, rightMinutes, rightMillis;
+
+    // Variables to hold data captured
     boolean snsUsed = false;
     Calendar startTime;
     Calendar endTime;
     String bottle = "none";
-    int bottleQty = 0; // this doubles for snsQty
+    int bottleQty = 0; // if sns was used, this attribute captures the qty associated with that
     int left = 0;
     int right = 0;
     String babyName;
@@ -64,20 +77,27 @@ public class FeedingActivity extends AppCompatActivity {
         tvSelectedBabyFeeding = (TextView) findViewById(R.id.tvSelectedBabyFeeding);
         lvFeedingMenu = (ListView) findViewById(R.id.lvFeedingMenu);
         chMasterTimer = (Chronometer) findViewById(R.id.chMasterTimer);
-        chLeftTimer = (Chronometer) findViewById(R.id.chLeftTimer);
-        chRightTimer = (Chronometer) findViewById(R.id.chRightTimer);
+        tvLeftTimer = (TextView) findViewById(R.id.tvLeftTimer);
+        tvRightTimer = (TextView) findViewById(R.id.tvRightTimer);
+
+        Log.d(TAG, "create handlers for left and right timers");
+        leftHandler = new Handler();
+        rightHandler = new Handler();
+
+
+        // AA learning lesson: if you try to run multiple Chronometers on one screen, they
+        // interfere with one another. So instead of multiple Chronometers, I created some custom timers.
 
         Log.d(TAG, "Getting child from preferences and setting on screen");
         babyName = sharedPreferences.getString("babyName", "");
         tvSelectedBabyFeeding.setText("Selected child: " + babyName);
 
-        // set the databaseQuery
+        Log.d(TAG, "set the databaseQuery");
         databaseQuery = new DatabaseQuery(this);
 
-        // Let's fill that list view
+        Log.d(TAG, "fill the list view for controls");
         final ArrayList<FeedingMenuOptions> menuItems = new ArrayList<FeedingMenuOptions>();
-
-        menuItems.add(new FeedingMenuOptions("Pause", "pause"));
+        menuItems.add(new FeedingMenuOptions("Pause", "btPauseLeft"));
         menuItems.add(new FeedingMenuOptions("Start Left", "left"));
         menuItems.add(new FeedingMenuOptions("Start Right", "right"));
         menuItems.add(new FeedingMenuOptions("Start Bottle", "bottle"));
@@ -85,12 +105,12 @@ public class FeedingActivity extends AppCompatActivity {
         menuItems.add(new FeedingMenuOptions("Finish", "finish"));
         menuItems.add(new FeedingMenuOptions("Save and Go Back", "back"));
 
-        // Initialize the adapter
+        Log.d(TAG, "Initialize the list view adapter - for controls");
         FeedingMenuOptionsAdapter adapter = new FeedingMenuOptionsAdapter(this, R.layout.menu_list, menuItems);
         lvFeedingMenu.setAdapter(adapter);
 
 
-        //have listview respond to selected items
+        // have listview respond to selected items
         lvFeedingMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -101,110 +121,153 @@ public class FeedingActivity extends AppCompatActivity {
                 // And handle it accordingly
                 switch (identifier) {
 
-                    case "pause":
+                    case "btPauseLeft":
 
-                        // ok, some logic here.....
-                        // only left or right should be running. If one is running, pause it, log which one is paused
-                        if(isLeftTimerRunning || isRightTimerRunning) {
-                            if(isLeftTimerRunning){
-                                chLeftTimer.stop();
-                                pausedSide = "left";
+                        if(startTime != null) {
+                            // If neither is running, then one has been paused (possibly)
+                            if (!pausedSide.equals("none")) {
+                                if (pausedSide.equals("left")) {
+                                    // start the left timer again
+                                    startLeft();
+
+                                    // set the flags
+                                    pausedSide = "none";
+                                    isLeftTimerRunning = true;
+                                } else if (pausedSide.equals("right")) {
+                                    // start the right timer again
+                                    startRight();
+
+                                    // set the flags
+                                    pausedSide = "none";
+                                    isRightTimerRunning = true;
+                                }
                             }
-                            else {
-                                chRightTimer.stop();
+
+                            // If left or right timer is running, pause it (assumed only one running)
+                            else if (isLeftTimerRunning) {
+                                // Pause the left timer
+                                pauseLeft();
+
+                                // set the flags
+                                pausedSide = "left";
+                                isLeftTimerRunning = false;
+                            }
+
+                            else if (isRightTimerRunning) {
+                                // Pause the right timer
+                                pauseRight();
+
+                                // set the flags
                                 pausedSide = "right";
+                                isRightTimerRunning = false;
                             }
 
                             // TODO: should the master timer be handled?
-                            // reason would be bottle feeding ... but start time and end time are being recorded...
-                        }
+                            // reason would be bottle feeding ... but btStartLeft time and end time are being recorded...
 
-                        // If neither is running, then one has been paused (possibly)
-                        if(!isLeftTimerRunning && !isRightTimerRunning) {
-                            if(pausedSide.equals("left")){
-                                pausedSide = "none";
-                                chLeftTimer.start();
-                                isLeftTimerRunning = true;
-                            }
-                            else if(pausedSide.equals("right")){
-                                pausedSide = "none";
-                                chRightTimer.start();
-                                isRightTimerRunning = true;
-                            }
-                            else {
-                                pausedSide = "none";
-                            }
 
                         }
+
+                        // if the master timer has not been started, do nothing
                         break;
 
                     case "left":
-                        // start appropriate timers that are running
-                        if(startTime != null) {
-                            startTime = Calendar.getInstance();
-                            // time logged. Need to start chronometer
-                            chMasterTimer.start();
-                            isMasterTimerRunning = true;
-                        }
 
+                        // if left is not running, start it
                         if(!isLeftTimerRunning){
-                            chLeftTimer.start();
+                            // start the left timer
+                            startLeft();
+
+                            // set the flag
                             isLeftTimerRunning = true;
                         }
 
-                        // if right timer is running, pause it
+                        // if the right is running, pause it
                         if(isRightTimerRunning){
-                            chRightTimer.stop();
+                            // pause the right timer
+                            pauseRight();
+
+                            // set the flag
                             isRightTimerRunning = false;
                         }
 
+                        // if the master timer has not been started, start it
+                        if(startTime == null) {
+                            // get instance of current time, start chronometer
+                            startTime = Calendar.getInstance();
+                            chMasterTimer.start();
+
+                            // set the flag
+                            isMasterTimerRunning = true;
+                        }
+
+                        // AA NOTE: if bottle feeding, we aren't really worried about timing it
                         // what happens if the feeding is bottle? (bottle != none && sns == false)
                         break;
 
                     case "right":
-                        // start appropriate timers that are running
-                        if(startTime != null) {
-                            startTime = Calendar.getInstance();
-                            // time logged. Need to start chronometer
-                            chMasterTimer.start();
-                            isMasterTimerRunning = true;
-                        }
-
+                        // if right is not running, start it
                         if(!isRightTimerRunning){
-                            chRightTimer.start();
+                            // start the right timer
+                            startRight();
+
+                            // set the flag
                             isRightTimerRunning = true;
                         }
 
-                        // if right timer is running, pause it
+                        // if the left is running, pause it
                         if(isLeftTimerRunning){
-                            chLeftTimer.stop();
+                            // pause the left timer
+                            pauseLeft();
+
+                            // set the flag
                             isLeftTimerRunning = false;
                         }
 
-                        // what happens if the feeding is bottle? (bottle != none && sns == false)
-                        break;
-
-                    case "bottle":
-                        // start appropriate timers that are running
-                        if(startTime != null) {
+                        // if the master timer has not been started, start it
+                        if(startTime == null) {
+                            // get instance of current time, start chronometer
                             startTime = Calendar.getInstance();
-                            // time logged. Need to start chronometer
                             chMasterTimer.start();
+
+                            // set the flag
                             isMasterTimerRunning = true;
                         }
 
-                        // If breastfeeding timers are running, pause them.
+                        // AA NOTE: if bottle feeding, we aren't really worried about timing it
+                        // what happens if the feeding is bottle? (bottle != none && sns == false)
+
+                        break;
+
+                    case "bottle":
+                        // if the master timer has not been started, start it
+                        if(startTime == null) {
+                            // get instance of current time, start chronometer
+                            startTime = Calendar.getInstance();
+                            chMasterTimer.start();
+
+                            // set the flag
+                            isMasterTimerRunning = true;
+                        }
+
+                        // If breastfeeding timers are running, btPauseLeft them.
                         if(isRightTimerRunning){
-                            chRightTimer.stop();
+                            // pause the right timer
+                            pauseRight();
+
+                            // set the flag
                             isRightTimerRunning = false;
                         }
 
                         if(isLeftTimerRunning){
-                            chLeftTimer.stop();
+                            // pause the left timer
+                            pauseLeft();
+
+                            // set the flag
                             isLeftTimerRunning = false;
                         }
 
-                        // TODO: need to start a dialog to log the bottle qty and type
+                        // TODO: need to create a dialog to log the bottle qty and type
 
                         break;
 
@@ -213,7 +276,7 @@ public class FeedingActivity extends AppCompatActivity {
                         // TODO: if time, improve and make this list view item change color or something
                         snsUsed = true;
 
-                        // TODO: need to start a dialog to log the bottle qty and type
+                        // TODO: need to create a dialog to log the bottle qty and type
                         break;
 
                     case "finish":
@@ -225,7 +288,7 @@ public class FeedingActivity extends AppCompatActivity {
 
                     case "summary":
                         // take user to summary screen
-                        // don't pause the timers
+                        // don't btPauseLeft the timers
                         break;
 
                     case "back":
@@ -237,15 +300,99 @@ public class FeedingActivity extends AppCompatActivity {
                         break;
                 }
 
-                // TODO: going to have to process what the value is or something to that effect
-                // TODO: could write something like menuItems.get(i).getMenuIdentifier();
-                // use int i to get the item out of the list?
-//                Intent intent = menuItems.get(i).getMenuIntent();
-//                startActivity(intent);
             }
         });
     }
 
+    // HERE ARE THE START/STOP/PAUSE METHODS FOR THE LEFT AND RIGHT TIMERS
+    private void startLeft() {
+        leftStartTime = SystemClock.uptimeMillis();
+        leftHandler.postDelayed(leftRunnable, 0);
+        //btResetLeft.setEnabled(false);
+    }
+
+    private void pauseLeft() {
+        leftTimeBuff += leftMillisTime;
+        leftHandler.removeCallbacks(leftRunnable);
+        //btResetLeft.setEnabled(true);
+    }
+
+    private void resetLeft() {
+        leftMillisTime = 0L ;
+        leftStartTime = 0L ;
+        leftTimeBuff = 0L ;
+        leftUpdateTime = 0L ;
+        leftSeconds = 0 ;
+        leftMinutes = 0 ;
+        leftMillis = 0 ;
+        tvLeftTimer.setText("00:00:00");
+    }
+
+    private void startRight() {
+        rightStartTime = SystemClock.uptimeMillis();
+        rightHandler.postDelayed(rightRunnable, 0);
+        //btResetRight.setEnabled(false);
+    }
+
+    private void pauseRight() {
+        rightTimeBuff += rightMillisTime;
+        rightHandler.removeCallbacks(rightRunnable);
+        //btResetRight.setEnabled(true);
+    }
+
+    private void resetRight() {
+        rightMillisTime = 0L ;
+        rightStartTime = 0L ;
+        rightTimeBuff = 0L ;
+        rightUpdateTime = 0L ;
+        rightSeconds = 0 ;
+        rightMinutes = 0 ;
+        rightMillis = 0 ;
+        tvRightTimer.setText("00:00:00");
+    }
+
+    public Runnable leftRunnable = new Runnable() {
+
+        public void run() {
+
+            leftMillisTime = SystemClock.uptimeMillis() - leftStartTime;
+            leftUpdateTime = leftTimeBuff + leftMillisTime;
+            leftSeconds = (int) (leftUpdateTime / 1000);
+            leftMinutes = leftSeconds / 60;
+            leftSeconds = leftSeconds % 60;
+            leftMillis = (int) (leftUpdateTime % 1000);
+
+            tvLeftTimer.setText("" + leftMinutes + ":"
+                    + String.format("%02d", leftSeconds) + ":"
+                    + String.format("%03d", leftMillis));
+
+            leftHandler.postDelayed(this, 0);
+        }
+    };
+
+    public Runnable rightRunnable = new Runnable() {
+
+        public void run() {
+
+            rightMillisTime = SystemClock.uptimeMillis() - rightStartTime;
+            rightUpdateTime = rightTimeBuff + rightMillisTime;
+            rightSeconds = (int) (rightUpdateTime / 1000);
+            rightMinutes = rightSeconds / 60;
+            rightSeconds = rightSeconds % 60;
+            rightMillis = (int) (rightUpdateTime % 1000);
+
+            tvRightTimer.setText("" + rightMinutes + ":"
+                    + String.format("%02d", rightSeconds) + ":"
+                    + String.format("%03d", rightMillis));
+
+            rightHandler.postDelayed(this, 0);
+        }
+    };
+
+
+
+    // WRAP UP THE FEEDING AND GET THE DATA
+    // TODO: persist to the database
     @Override
     public void onBackPressed() {
 
@@ -257,33 +404,46 @@ public class FeedingActivity extends AppCompatActivity {
 
     private void finishFeeding() {
         // stop appropriate timers that are running
-        if(endTime != null && isMasterTimerRunning) {
+        if(endTime == null && isMasterTimerRunning) {
             // log end time
             endTime = Calendar.getInstance();
-            // stop the chronometers
+            // stop the chronometer
             chMasterTimer.stop();
             isMasterTimerRunning = false;
         }
 
-        // If breastfeeding timers are running, pause them.
+        // If breastfeeding timers are running, btPauseLeft them.
         if(isRightTimerRunning){
-            chRightTimer.stop();
+            // todo: stop the right side timer
             isRightTimerRunning = false;
         }
 
         if(isLeftTimerRunning){
-            chLeftTimer.stop();
+            // todo: stop the right side timer
             isLeftTimerRunning = false;
         }
 
+        // TODO: format time in threads and here. We can come back to this at the end
         // now we need to wrap up the data.
-        left = (int)(SystemClock.elapsedRealtime() - chLeftTimer.getBase());
-        right = (int)(SystemClock.elapsedRealtime() - chRightTimer.getBase());
+        String leftString = tvLeftTimer.getText().toString();
+        String rightString = tvRightTimer.getText().toString();
+
+
+
 
         // ok, we should have all of our data now. Let's set it up for persisting to database.
+        Log.d(TAG, "Baby Name: " + babyName);                       // String
+        Log.d(TAG, "Start Time: " + startTime.getTimeInMillis());   // save millis as string
+        Log.d(TAG, "End Time: " + endTime.getTimeInMillis());       // save millis as string
+        Log.d(TAG, "Elapsed Time (Left): " + leftString);                 // int
+        Log.d(TAG, "Elapsed Time (Right): " + rightString);               // int
+        Log.d(TAG, "SNS? : " + snsUsed);                            // boolean
+        Log.d(TAG, "Bottle Type: " + bottle);                       // string
+        Log.d(TAG, "Bottle Qty (mL): " + bottleQty);                // int
+
 
         // TODO: persist the data
-        // TODO: call form reset method (need to code)
+        // TODO: call form btResetLeft method (need to code)
 
     }
 
@@ -361,7 +521,6 @@ public class FeedingActivity extends AppCompatActivity {
         babyName = item.getTitle().toString();
         tvSelectedBabyFeeding.setText("Selected child: " + babyName);
 
-
         // instantiate the SharedPreferences Editor and put in the new values
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("babyName", babyName);
@@ -376,6 +535,7 @@ public class FeedingActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Toasting helper method
     private void makeToast(String message){
         Toast.makeText(FeedingActivity.this, message, Toast.LENGTH_LONG).show();
     }

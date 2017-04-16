@@ -24,20 +24,22 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
-    // dependencies for sqlite and date/time
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
     compile 'joda-time:joda-time:2.9.4'
-    testCompile 'junit:junit:4.12'
     compile 'junit:junit:4.12'
+    compile 'com.mcxiaoke.volley:library-aar:1.0.0'
+    testCompile 'junit:junit:4.12'
+
+    // dependencies for sqlite and date/time
+    
 
     // dependencies for html to pdf
-    compile 'com.mcxiaoke.volley:library-aar:1.0.0'
-//    compile 'org.apache.httpcomponents:httpclient:4.5'
+    //    compile 'org.apache.httpcomponents:httpclient:4.5'
 //    compile('org.apache.httpcomponents:httpmime:4.3') {
 //        exclude module: "httpclient"
-//    }
+
+    //    }
 
 }
