@@ -1,10 +1,12 @@
 package com.example.pocketbabytracker;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,7 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -299,16 +303,14 @@ public class FeedingActivity extends AppCompatActivity {
                             isLeftTimerRunning = false;
                         }
 
-                        // TODO: need to create a dialog to log the bottle qty and type
+                        // Open dialog for bottle/supplement. Pass in false to indicate SNS was not used
+                        openBottleDialog(false);
 
                         break;
 
                     case "sns":
-                        // TODO: if time, improve and make this list view item change color or something
-                        snsUsed = true;
-                        tvSnsUsed.setText("SNS: yes");
-
-                        // TODO: need to create a dialog to log the bottle qty and type
+                        // Open dialog for bottle/supplement. Pass in true to indicate SNS used
+                        openBottleDialog(true);
                         break;
 
                     case "finish":
@@ -338,6 +340,56 @@ public class FeedingActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    // A dialog to record qty of supplement and type
+    private void openBottleDialog(final boolean isSnsFeeding){
+        final AlertDialog.Builder bottleDialog = new AlertDialog.Builder(FeedingActivity.this);
+
+        if(isSnsFeeding) {
+            bottleDialog.setTitle("Supplement Details");
+        } else {
+            bottleDialog.setTitle("Bottle Details");
+        }
+
+        View bottleView = getLayoutInflater().inflate(R.layout.dialog_bottle, null);
+
+        // define the views inside that layout
+        final RadioButton rbBreast= (RadioButton) bottleView.findViewById(R.id.rbBreast);
+        final EditText etBottleQty = (EditText) bottleView.findViewById(R.id.etBottleQty);
+
+        bottleDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // get the data out
+                snsUsed = isSnsFeeding;
+                boolean isBreastmilk = rbBreast.isChecked();
+                if(isBreastmilk){
+                    bottle = "breast";
+                } else {
+                    bottle = "formula";
+                }
+
+                bottleQty = Integer.parseInt(etBottleQty.getText().toString());
+                if(isSnsFeeding){
+                    tvSnsUsed.setText("SNS: yes");
+                } else {
+                    tvSnsUsed.setText("SNS: not used");
+                }
+
+                dialog.cancel();
+            }
+        });
+        bottleDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        bottleDialog.setView(bottleView);
+        AlertDialog dialog = bottleDialog.create();
+        dialog.show();
     }
 
     // WRAP UP THE FEEDING AND GET THE DATA
@@ -401,6 +453,8 @@ public class FeedingActivity extends AppCompatActivity {
         );
         Log.d(TAG, "created feedingToSave");
 
+        // set this data as the last feeding
+        tvLastFeeding.setText(feedingToSave.lastFeedingString());
 
         // persist the data
         boolean feedingSaveResult = databaseQuery.setNewFeeding(feedingToSave);
