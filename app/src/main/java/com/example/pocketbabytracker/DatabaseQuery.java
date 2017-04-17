@@ -17,7 +17,8 @@ import java.util.Locale;
 // Runs the query and gets the data as a list of EventObjects
 public class DatabaseQuery extends DatabaseObject{
 
-    private static final String TAG = Database.class.getSimpleName();
+    //private static final String TAG = Database.class.getSimpleName();
+    private static final String TAG = "Andrea-DbQuery";
 
     // Table name and all of it's column names
     private final String BABIES_TABLE = "Babies";
@@ -33,13 +34,195 @@ public class DatabaseQuery extends DatabaseObject{
     private final String FEEDINGS_COL_BOTTLE = "bottle";
     private final String FEEDINGS_COL_BOTTLE_QTY = "bottle_qty";
     private final String FEEDINGS_COL_LEFT = "left";
-    private final String FEEDINGS_COL_RIGTH = "right";
+    private final String FEEDINGS_COL_RIGHT = "right";
     private final String FEEDINGS_COL_SNS = "sns";
 
     public DatabaseQuery(Context context) {
         super(context);
     }
 
+    public boolean deleteTableData(){
+        boolean result = false;
+
+        // Query to run, and get the cursor
+        String deleteFromFeedings = "DELETE FROM " + FEEDINGS_TABLE + ";";
+        String deleteFromBabies = "DELETE FROM " + BABIES_TABLE + ";";
+
+        // run the statements
+        try {
+            this.getDbConnection().execSQL(deleteFromFeedings);
+            this.getDbConnection().execSQL(deleteFromBabies);
+            result = true;
+
+        } catch (SQLException e) {
+            result = false;
+            Log.d(TAG, "SQLException unable to delete records from tables" + e.getMessage());
+        }
+
+        return result;
+    }
+
+    // Let's persist a feeding
+    public boolean setNewFeeding(FeedingElements newFeeding){
+        Log.d(TAG, "begin setNewFeeding");
+
+        boolean result = false;
+
+        // because we store this boolean as an int, let's set it to 0 (true) or 1 (false)
+        int snsUsed = newFeeding.getSns() ? 1 : 0;
+
+        // Query to run, and get the cursor
+        String insertStatement =
+                "INSERT INTO " + FEEDINGS_TABLE + " ("
+                    + FEEDINGS_COL_START_TIME + ", "
+                    + FEEDINGS_COL_END_TIME + ", "
+                    + FEEDINGS_COL_BABY_NAME + ", "
+                    + FEEDINGS_COL_BOTTLE + ", "
+                    + FEEDINGS_COL_BOTTLE_QTY + ", "
+                    + FEEDINGS_COL_LEFT + ", "
+                    + FEEDINGS_COL_RIGHT + ", "
+                    + FEEDINGS_COL_SNS + ") " +
+                "VALUES ('"
+                    + String.valueOf(newFeeding.getStartTime()) + "', '"
+                    + String.valueOf(newFeeding.getEndTime()) + "', '"
+                    + newFeeding.getBabyName() + "', '"
+                    + newFeeding.getBottle() + "', "
+                    + newFeeding.getBottleQty() + ", "
+                    + newFeeding.getLeft() + ", "
+                    + newFeeding.getRight() + ", "
+                    + snsUsed + ");";
+
+        // run the query
+        Log.d(TAG, "try to run the query");
+        try {
+            this.getDbConnection().execSQL(insertStatement);
+            result = true;
+
+        } catch (SQLException e) {
+            result = false;
+            Log.d(TAG, "SQLException inserting newFeeding into database" + e.getMessage());
+        }
+
+        return result;
+    }
+
+    // let's get all of the feedings out of the database
+    public List<FeedingElements> getAllFeedings(){
+
+        List<FeedingElements> feedingElements = new ArrayList<FeedingElements>();
+
+        // Query to run, and get the cursor
+        String query = "SELECT * FROM " + FEEDINGS_TABLE;
+        Cursor cursor = this.getDbConnection().rawQuery(query, null);
+
+
+        // we have results by way of a cursor. Iterate through them
+        if(cursor.moveToFirst()){
+            do{
+                int id = cursor.getInt(0);
+
+                // get the data
+                String startTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_START_TIME));
+                String endTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_END_TIME));
+                String babyName = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BABY_NAME));
+                String bottle = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE));
+                int bottleQty = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE_QTY));
+                int left = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_LEFT));
+                int right = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_RIGHT));
+                int snsInteger = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_SNS));
+
+                // convert sns from an integer to a boolean where 1 would be true
+                boolean sns = (snsInteger == 1);
+
+                // parse the start time and end times
+                long startTime = 0L;
+                long endTime = 0L;
+                try {
+                    startTime = Long.parseLong(startTimeString);
+                    endTime = Long.parseLong(endTimeString);
+                } catch (NumberFormatException e){
+                    // intentionally empty. Accept 0L as entry for now.
+                }
+
+                // create and add FeedingElements entry to the list
+                feedingElements.add(new FeedingElements(
+                        startTime,
+                        endTime,
+                        babyName,
+                        bottle,
+                        bottleQty,
+                        left,
+                        right,
+                        sns)
+                );
+
+            }while (cursor.moveToNext());
+        }
+
+        // don't forget to close the cursor before returning the data
+        cursor.close();
+
+        return feedingElements;
+    }
+
+    // let's get all of the feedings out of the database
+    public List<FeedingElements> getFeedingsForBaby(String babyNameParam){
+
+        List<FeedingElements> feedingElements = new ArrayList<FeedingElements>();
+
+        // Query to run, and get the cursor
+        String query = "SELECT * FROM " + FEEDINGS_TABLE + " WHERE " + FEEDINGS_COL_BABY_NAME + " = '" + babyNameParam + "'";
+        Cursor cursor = this.getDbConnection().rawQuery(query, null);
+
+
+        // we have results by way of a cursor. Iterate through them
+        if(cursor.moveToFirst()){
+            do{
+                int id = cursor.getInt(0);
+
+                // get the data
+                String startTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_START_TIME));
+                String endTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_END_TIME));
+                String babyName = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BABY_NAME));
+                String bottle = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE));
+                int bottleQty = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE_QTY));
+                int left = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_LEFT));
+                int right = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_RIGHT));
+                int snsInteger = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_SNS));
+
+                // convert sns from an integer to a boolean where 1 would be true
+                boolean sns = (snsInteger == 1);
+
+                // parse the start time and end times
+                long startTime = 0L;
+                long endTime = 0L;
+                try {
+                    startTime = Long.parseLong(startTimeString);
+                    endTime = Long.parseLong(endTimeString);
+                } catch (NumberFormatException e){
+                    // intentionally empty. Accept 0L as entry for now.
+                }
+
+                // create and add FeedingElements entry to the list
+                feedingElements.add(new FeedingElements(
+                        startTime,
+                        endTime,
+                        babyName,
+                        bottle,
+                        bottleQty,
+                        left,
+                        right,
+                        sns)
+                );
+
+            }while (cursor.moveToNext());
+        }
+
+        // don't forget to close the cursor before returning the data
+        cursor.close();
+
+        return feedingElements;
+    }
 
     // Let's persist a baby
     public boolean setNewBaby(BabyElements newBaby){
@@ -56,7 +239,7 @@ public class DatabaseQuery extends DatabaseObject{
 
         } catch (SQLException e) {
             result = false;
-            Log.d("Andrea", "SQLException inserting newBaby into database" + e.getMessage());
+            Log.d(TAG, "SQLException inserting newBaby into database" + e.getMessage());
         }
 
         return result;

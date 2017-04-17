@@ -9,8 +9,8 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Stopwatch Activity"
-        android:onClick="startStopwatchActivity"
+        android:text="Delete All Table Data"
+        android:onClick="deleteAllTableData"
         />
 
     <TextView

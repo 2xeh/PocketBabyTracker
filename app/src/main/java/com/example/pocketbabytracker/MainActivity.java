@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     } // end of onCreate()
 
 
-    // An ArrayAdapter Blogs to use in the ListView
+
     private class MainActivityMenuOptionsAdapter extends ArrayAdapter<MainActivityMenuOptions> {
         private ArrayList<MainActivityMenuOptions> items;
 
@@ -97,12 +97,10 @@ public class MainActivity extends AppCompatActivity {
             if (menuItem != null) {
                 TextView header = (TextView) view.findViewById(R.id.tvMenuItem);
                 header.setText(menuItem.getMenuDescription());
-
-                // I feel like I should be doing something with intent here???
             }
             return view;
         }
-    } // end of MainActivityMenuOptionsAdapter nested class
+    }
 
 
     // class to define properties of menu items
@@ -139,8 +137,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void startStopwatchActivity(View view){
-        startActivity(new Intent(this, StopwatchActivity.class));
+    public void deleteAllTableData(View view){
+        boolean result = databaseQuery.deleteTableData();
+        Log.d(TAG, "Deleted all records from tables: " + result);
     }
 
     @Override

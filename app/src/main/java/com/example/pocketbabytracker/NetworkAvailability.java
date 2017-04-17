@@ -5,7 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 
-// AA NOTE: This is from the Html to PDF Rocket example
+// AA NOTE: This code comes from the Html to PDF Rocket example
 
 /**
  * <h1>NetworkAvailability</h1> This purpose of this class to check state of

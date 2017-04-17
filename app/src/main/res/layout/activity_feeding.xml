@@ -23,13 +23,15 @@
         android:minHeight="30dp"
         />
 
-    <Chronometer
-        android:id="@+id/chMasterTimer"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/tvMasterTimer"
+        android:text="00:00"
+        android:textSize="36dp"
+        android:minHeight="30dp"
         android:textAlignment="center"
-        android:textSize="36sp"
-        android:visibility="visible" />
+        />
 
     <LinearLayout
         android:layout_width="match_parent"

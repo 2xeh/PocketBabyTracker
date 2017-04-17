@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Chronometer;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,9 +31,13 @@ public class FeedingActivity extends AppCompatActivity {
     ListView lvFeedingMenu;
     TextView tvSelectedBabyFeeding;
 
-    // Attributes for master timer (chronometer) -- we can only run one
+    // Attributes for Master Timer
     boolean isMasterTimerRunning = false;
-    Chronometer chMasterTimer;
+    TextView tvMasterTimer;
+    Handler masterHandler;
+    long masterMillisTime, masterStartTime, masterTimeBuff, masterUpdateTime = 0L ;
+    int masterSeconds, masterMinutes, masterMillis;
+
 
     // Attributes for Left Timer
     boolean isLeftTimerRunning = false;
@@ -76,11 +79,12 @@ public class FeedingActivity extends AppCompatActivity {
         Log.d(TAG, "get the controls");
         tvSelectedBabyFeeding = (TextView) findViewById(R.id.tvSelectedBabyFeeding);
         lvFeedingMenu = (ListView) findViewById(R.id.lvFeedingMenu);
-        chMasterTimer = (Chronometer) findViewById(R.id.chMasterTimer);
+        tvMasterTimer = (TextView) findViewById(R.id.tvMasterTimer);
         tvLeftTimer = (TextView) findViewById(R.id.tvLeftTimer);
         tvRightTimer = (TextView) findViewById(R.id.tvRightTimer);
 
-        Log.d(TAG, "create handlers for left and right timers");
+        Log.d(TAG, "create handlers for master, left, and right timers");
+        masterHandler = new Handler();
         leftHandler = new Handler();
         rightHandler = new Handler();
 
@@ -90,7 +94,7 @@ public class FeedingActivity extends AppCompatActivity {
 
         Log.d(TAG, "Getting child from preferences and setting on screen");
         babyName = sharedPreferences.getString("babyName", "");
-        tvSelectedBabyFeeding.setText("Selected child: " + babyName);
+        tvSelectedBabyFeeding.setText("Feeding baby " + babyName);
 
         Log.d(TAG, "set the databaseQuery");
         databaseQuery = new DatabaseQuery(this);
@@ -162,16 +166,17 @@ public class FeedingActivity extends AppCompatActivity {
                                 isRightTimerRunning = false;
                             }
 
-                            // TODO: should the master timer be handled?
+                            // AA NOTE: choosing not to pause master timer, because it represents start time of session
+                            // actual time spent on the breast is recorded separately
+                            // where the master timer is capturing the actual amount of time spent on the activity
                             // reason would be bottle feeding ... but btStartLeft time and end time are being recorded...
-
-
                         }
 
                         // if the master timer has not been started, do nothing
                         break;
 
                     case "left":
+                        pausedSide = "none";
 
                         // if left is not running, start it
                         if(!isLeftTimerRunning){
@@ -195,7 +200,10 @@ public class FeedingActivity extends AppCompatActivity {
                         if(startTime == null) {
                             // get instance of current time, start chronometer
                             startTime = Calendar.getInstance();
-                            chMasterTimer.start();
+
+                            // start the master timer from 0
+                            resetMaster();
+                            startMaster();
 
                             // set the flag
                             isMasterTimerRunning = true;
@@ -206,6 +214,8 @@ public class FeedingActivity extends AppCompatActivity {
                         break;
 
                     case "right":
+                        pausedSide = "none";
+
                         // if right is not running, start it
                         if(!isRightTimerRunning){
                             // start the right timer
@@ -228,7 +238,10 @@ public class FeedingActivity extends AppCompatActivity {
                         if(startTime == null) {
                             // get instance of current time, start chronometer
                             startTime = Calendar.getInstance();
-                            chMasterTimer.start();
+
+                            // start the master timer from 0
+                            resetMaster();
+                            startMaster();
 
                             // set the flag
                             isMasterTimerRunning = true;
@@ -244,7 +257,10 @@ public class FeedingActivity extends AppCompatActivity {
                         if(startTime == null) {
                             // get instance of current time, start chronometer
                             startTime = Calendar.getInstance();
-                            chMasterTimer.start();
+
+                            // start the mastertimer from 0
+                            resetMaster();
+                            startMaster();
 
                             // set the flag
                             isMasterTimerRunning = true;
@@ -304,147 +320,92 @@ public class FeedingActivity extends AppCompatActivity {
         });
     }
 
-    // HERE ARE THE START/STOP/PAUSE METHODS FOR THE LEFT AND RIGHT TIMERS
-    private void startLeft() {
-        leftStartTime = SystemClock.uptimeMillis();
-        leftHandler.postDelayed(leftRunnable, 0);
-        //btResetLeft.setEnabled(false);
-    }
-
-    private void pauseLeft() {
-        leftTimeBuff += leftMillisTime;
-        leftHandler.removeCallbacks(leftRunnable);
-        //btResetLeft.setEnabled(true);
-    }
-
-    private void resetLeft() {
-        leftMillisTime = 0L ;
-        leftStartTime = 0L ;
-        leftTimeBuff = 0L ;
-        leftUpdateTime = 0L ;
-        leftSeconds = 0 ;
-        leftMinutes = 0 ;
-        leftMillis = 0 ;
-        tvLeftTimer.setText("00:00:00");
-    }
-
-    private void startRight() {
-        rightStartTime = SystemClock.uptimeMillis();
-        rightHandler.postDelayed(rightRunnable, 0);
-        //btResetRight.setEnabled(false);
-    }
-
-    private void pauseRight() {
-        rightTimeBuff += rightMillisTime;
-        rightHandler.removeCallbacks(rightRunnable);
-        //btResetRight.setEnabled(true);
-    }
-
-    private void resetRight() {
-        rightMillisTime = 0L ;
-        rightStartTime = 0L ;
-        rightTimeBuff = 0L ;
-        rightUpdateTime = 0L ;
-        rightSeconds = 0 ;
-        rightMinutes = 0 ;
-        rightMillis = 0 ;
-        tvRightTimer.setText("00:00:00");
-    }
-
-    public Runnable leftRunnable = new Runnable() {
-
-        public void run() {
-
-            leftMillisTime = SystemClock.uptimeMillis() - leftStartTime;
-            leftUpdateTime = leftTimeBuff + leftMillisTime;
-            leftSeconds = (int) (leftUpdateTime / 1000);
-            leftMinutes = leftSeconds / 60;
-            leftSeconds = leftSeconds % 60;
-            leftMillis = (int) (leftUpdateTime % 1000);
-
-            tvLeftTimer.setText("" + leftMinutes + ":"
-                    + String.format("%02d", leftSeconds) + ":"
-                    + String.format("%03d", leftMillis));
-
-            leftHandler.postDelayed(this, 0);
-        }
-    };
-
-    public Runnable rightRunnable = new Runnable() {
-
-        public void run() {
-
-            rightMillisTime = SystemClock.uptimeMillis() - rightStartTime;
-            rightUpdateTime = rightTimeBuff + rightMillisTime;
-            rightSeconds = (int) (rightUpdateTime / 1000);
-            rightMinutes = rightSeconds / 60;
-            rightSeconds = rightSeconds % 60;
-            rightMillis = (int) (rightUpdateTime % 1000);
-
-            tvRightTimer.setText("" + rightMinutes + ":"
-                    + String.format("%02d", rightSeconds) + ":"
-                    + String.format("%03d", rightMillis));
-
-            rightHandler.postDelayed(this, 0);
-        }
-    };
-
-
-
     // WRAP UP THE FEEDING AND GET THE DATA
-    // TODO: persist to the database
     @Override
     public void onBackPressed() {
 
-        // save the data and finish the feeding
-        finishFeeding();
+        // If there is data to save, then save it
+        if(startTime != null){
+            finishFeeding();
+        }
 
         super.onBackPressed();
     }
 
     private void finishFeeding() {
+        pausedSide = "none";
+
         // stop appropriate timers that are running
         if(endTime == null && isMasterTimerRunning) {
-            // log end time
+            // stop the master timer
             endTime = Calendar.getInstance();
-            // stop the chronometer
-            chMasterTimer.stop();
+            pauseMaster();
             isMasterTimerRunning = false;
         }
 
         // If breastfeeding timers are running, btPauseLeft them.
         if(isRightTimerRunning){
-            // todo: stop the right side timer
+            // stop the right side timer
+            pauseRight();
             isRightTimerRunning = false;
         }
 
         if(isLeftTimerRunning){
-            // todo: stop the right side timer
+            // stop the right side timer
+            pauseLeft();
             isLeftTimerRunning = false;
         }
-
-        // TODO: format time in threads and here. We can come back to this at the end
-        // now we need to wrap up the data.
-        String leftString = tvLeftTimer.getText().toString();
-        String rightString = tvRightTimer.getText().toString();
-
-
 
 
         // ok, we should have all of our data now. Let's set it up for persisting to database.
         Log.d(TAG, "Baby Name: " + babyName);                       // String
         Log.d(TAG, "Start Time: " + startTime.getTimeInMillis());   // save millis as string
         Log.d(TAG, "End Time: " + endTime.getTimeInMillis());       // save millis as string
-        Log.d(TAG, "Elapsed Time (Left): " + leftString);                 // int
-        Log.d(TAG, "Elapsed Time (Right): " + rightString);               // int
+        Log.d(TAG, "Elapsed Time (Left): " + leftMillisTime);       // long
+        Log.d(TAG, "Elapsed Time (Right): " + rightMillisTime);     // long
         Log.d(TAG, "SNS? : " + snsUsed);                            // boolean
         Log.d(TAG, "Bottle Type: " + bottle);                       // string
         Log.d(TAG, "Bottle Qty (mL): " + bottleQty);                // int
 
 
-        // TODO: persist the data
-        // TODO: call form btResetLeft method (need to code)
+        // Let's put our data into a FeedingElement so we can persist the data
+        FeedingElements feedingToSave = new FeedingElements(
+                startTime.getTimeInMillis(),
+                endTime.getTimeInMillis(),
+                babyName,
+                bottle,
+                bottleQty,
+                (int) leftMillisTime,
+                (int) rightMillisTime,
+                snsUsed
+        );
+        Log.d(TAG, "created feedingToSave");
 
+
+        // persist the data
+        boolean feedingSaveResult = databaseQuery.setNewFeeding(feedingToSave);
+        Log.d(TAG, "finished trying to persist data");
+
+        if(!feedingSaveResult){
+            makeToast("Unable to save Feeding Data to database.");
+        }
+
+        resetForm();
+    }
+
+    private void resetForm(){
+        resetMaster();
+        resetLeft();
+        resetRight();
+
+        // reset the attributes that hold significant data
+        startTime = null;
+        endTime = null;
+        snsUsed = false;
+        bottle = "none";
+        bottleQty = 0;
+        left = 0;
+        right = 0;
     }
 
     // An ArrayAdapter Blogs to use in the ListView
@@ -534,6 +495,139 @@ public class FeedingActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    // METHODS TO CONTROL START/PAUSE/RESET FOR THE LEFT AND RIGHT TIMERS
+
+    private void startMaster() {
+        masterStartTime = SystemClock.uptimeMillis();
+        masterHandler.postDelayed(masterRunnable, 0);
+        //btResetMaster.setEnabled(false);
+    }
+
+    private void pauseMaster() {
+        masterTimeBuff += masterMillisTime;
+        masterHandler.removeCallbacks(masterRunnable);
+        //btResetMaster.setEnabled(true);
+    }
+
+    private void resetMaster() {
+        masterHandler.removeCallbacks(masterRunnable);
+        masterMillisTime = 0L ;
+        masterStartTime = 0L ;
+        masterTimeBuff = 0L ;
+        masterUpdateTime = 0L ;
+        masterSeconds = 0 ;
+        masterMinutes = 0 ;
+        masterMillis = 0 ;
+        tvMasterTimer.setText("00:00:00");
+    }
+
+    private void startLeft() {
+        leftStartTime = SystemClock.uptimeMillis();
+        leftHandler.postDelayed(leftRunnable, 0);
+        //btResetLeft.setEnabled(false);
+    }
+
+    private void pauseLeft() {
+        leftTimeBuff += leftMillisTime;
+        leftHandler.removeCallbacks(leftRunnable);
+        //btResetLeft.setEnabled(true);
+    }
+
+    private void resetLeft() {
+        leftHandler.removeCallbacks(leftRunnable);
+        leftMillisTime = 0L ;
+        leftStartTime = 0L ;
+        leftTimeBuff = 0L ;
+        leftUpdateTime = 0L ;
+        leftSeconds = 0 ;
+        leftMinutes = 0 ;
+        leftMillis = 0 ;
+        tvLeftTimer.setText("00:00:00");
+    }
+
+    private void startRight() {
+        rightStartTime = SystemClock.uptimeMillis();
+        rightHandler.postDelayed(rightRunnable, 0);
+        //btResetRight.setEnabled(false);
+    }
+
+    private void pauseRight() {
+        rightTimeBuff += rightMillisTime;
+        rightHandler.removeCallbacks(rightRunnable);
+        //btResetRight.setEnabled(true);
+    }
+
+    private void resetRight() {
+        rightHandler.removeCallbacks(rightRunnable);
+        rightMillisTime = 0L ;
+        rightStartTime = 0L ;
+        rightTimeBuff = 0L ;
+        rightUpdateTime = 0L ;
+        rightSeconds = 0 ;
+        rightMinutes = 0 ;
+        rightMillis = 0 ;
+        tvRightTimer.setText("00:00:00");
+    }
+
+
+    // RUNNABLES FOR ALL TIMERS (master, left, right)
+    public Runnable masterRunnable = new Runnable() {
+
+        public void run() {
+
+            masterMillisTime = SystemClock.uptimeMillis() - masterStartTime;
+            masterUpdateTime = masterTimeBuff + masterMillisTime;
+            masterSeconds = (int) (masterUpdateTime / 1000);
+            masterMinutes = masterSeconds / 60;
+            masterSeconds = masterSeconds % 60;
+            masterMillis = (int) (masterUpdateTime % 1000);
+
+            tvMasterTimer.setText("" + masterMinutes + ":"
+                    + String.format("%02d", masterSeconds) + ":"
+                    + String.format("%03d", masterMillis));
+
+            masterHandler.postDelayed(this, 0);
+        }
+    };
+
+    public Runnable leftRunnable = new Runnable() {
+
+        public void run() {
+
+            leftMillisTime = SystemClock.uptimeMillis() - leftStartTime;
+            leftUpdateTime = leftTimeBuff + leftMillisTime;
+            leftSeconds = (int) (leftUpdateTime / 1000);
+            leftMinutes = leftSeconds / 60;
+            leftSeconds = leftSeconds % 60;
+            leftMillis = (int) (leftUpdateTime % 1000);
+
+            tvLeftTimer.setText("" + leftMinutes + ":"
+                    + String.format("%02d", leftSeconds) + ":"
+                    + String.format("%03d", leftMillis));
+
+            leftHandler.postDelayed(this, 0);
+        }
+    };
+
+    public Runnable rightRunnable = new Runnable() {
+
+        public void run() {
+
+            rightMillisTime = SystemClock.uptimeMillis() - rightStartTime;
+            rightUpdateTime = rightTimeBuff + rightMillisTime;
+            rightSeconds = (int) (rightUpdateTime / 1000);
+            rightMinutes = rightSeconds / 60;
+            rightSeconds = rightSeconds % 60;
+            rightMillis = (int) (rightUpdateTime % 1000);
+
+            tvRightTimer.setText("" + rightMinutes + ":"
+                    + String.format("%02d", rightSeconds) + ":"
+                    + String.format("%03d", rightMillis));
+
+            rightHandler.postDelayed(this, 0);
+        }
+    };
 
     // Toasting helper method
     private void makeToast(String message){

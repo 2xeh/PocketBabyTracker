@@ -26,6 +26,7 @@ public class BabyInfoActivity extends AppCompatActivity {
     private ListView lvBabyInfoBabies, lvBabyInfoControls;
     private TextView tvBabyInfoSelected;
     private SharedPreferences sharedPreferences;
+    BabyInfoMenuOptionsAdapter babyAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,17 +52,12 @@ public class BabyInfoActivity extends AppCompatActivity {
 
 
 
-
-
         // CONTROLS LIST
         // Let's fill that list view
         final ArrayList<ControlsMenuOptions> menuItems = new ArrayList<ControlsMenuOptions>();
 
         menuItems.add(new ControlsMenuOptions("Add Child", new Intent(this, AddChildActivity.class)));
         menuItems.add(new ControlsMenuOptions("Back", new Intent(this, MainActivity.class)));
-//        menuItems.add(new ControlsMenuOptions("123", new Intent(this, AddChildActivity.class)));
-//        menuItems.add(new ControlsMenuOptions("456", new Intent(this, AddChildActivity.class)));
-//        menuItems.add(new ControlsMenuOptions("789", new Intent(this, AddChildActivity.class)));
 
         // Initialize the adapter
         ControlsMenuOptionsAdapter adapter = new ControlsMenuOptionsAdapter(this, R.layout.menu_list, menuItems);
@@ -71,7 +67,6 @@ public class BabyInfoActivity extends AppCompatActivity {
         lvBabyInfoControls.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
                 // use int i to get the item out of the list?
                 Intent intent = menuItems.get(i).getMenuIntent();
                 startActivity(intent);
@@ -79,16 +74,13 @@ public class BabyInfoActivity extends AppCompatActivity {
         });
 
 
-
-
-//        Log.d(TAG, "setting baby info list");
         // BABIES LIST
         // Let's fill that list view
         // TODO: wrap this in a try catch. on catch, just hide this listview.
         final ArrayList<BabyElements> babyItems = (ArrayList<BabyElements>) databaseQuery.getAllBabies();
 
         // Initialize the adapter for Babies List
-        BabyInfoMenuOptionsAdapter babyAdapter = new BabyInfoMenuOptionsAdapter(this, R.layout.babies_menu_list, babyItems);
+        babyAdapter = new BabyInfoMenuOptionsAdapter(this, R.layout.babies_menu_list, babyItems);
         lvBabyInfoBabies.setAdapter(babyAdapter);
 
 
@@ -96,15 +88,9 @@ public class BabyInfoActivity extends AppCompatActivity {
         lvBabyInfoBabies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                // TODO: need to add functionality to pickup baby name and put it into shared preferences
-                // TODO: edit the babies_menu_list to show baby data
-                // use int i to get the item out of the list
-                // babyItems.get(i).getBabyName();
                 String selectedBaby = babyItems.get(i).getBabyName();
-                saveToSharedPreferences(selectedBaby);
                 tvBabyInfoSelected.setText("Selected child: " + selectedBaby);
-
+                saveToSharedPreferences(selectedBaby);
             }
         });
 
@@ -115,6 +101,14 @@ public class BabyInfoActivity extends AppCompatActivity {
         ListUtils.setDynamicHeight(lvBabyInfoBabies);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // refresh the list of babies
+        babyAdapter.notifyDataSetChanged();
+
+    }
 
     private void saveToSharedPreferences(String babyName) {
 
