@@ -1,5 +1,7 @@
 package com.example.pocketbabytracker;
 
+import java.util.Calendar;
+
 public class FeedingElements {
     //Strings start_time, end_time, baby_name, bottle,
     // int bottle_qty, left, right, sns;
@@ -42,4 +44,23 @@ public class FeedingElements {
     public void setRight(int right) { this.right = right;}
     public boolean getSns() { return sns; }
     public void setSns(boolean sns) { this.sns = sns;}
+
+    public String lastFeedingString() {
+        Calendar endTimeDate = Calendar.getInstance();
+        endTimeDate.setTimeInMillis(endTime);
+
+        int endMonth = endTimeDate.get(Calendar.MONTH);
+        int endDay = endTimeDate.get(Calendar.DAY_OF_MONTH);
+        int endHour = endTimeDate.get(Calendar.HOUR_OF_DAY);
+        int endMinute = endTimeDate.get(Calendar.MINUTE);
+
+        String endMonthString = MonthNames.getName(endMonth);
+
+        return endMonthString + " " + endDay + " at " + endHour + ":" + String.format("%02d", endMinute);
+    }
+
+    @Override
+    public String toString() {
+        return "BabyName: " + babyName +", StartTime: " + startTime + ", EndTime: " + endTime;
+    }
 }

@@ -7,12 +7,40 @@
     >
 
     <TextView
+        android:id="@+id/tvSelectedBabyFeeding"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvSelectedBabyFeeding"
-        android:textSize="18dp"
         android:minHeight="30dp"
-        />
+        android:text="Feeding baby "
+        android:textSize="18dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/tvLastSide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="30dp"
+            android:text="Last Side: none"
+            android:textSize="18dp"
+            android:layout_gravity="left"/>
+
+        <TextView
+            android:id="@+id/tvSnsUsed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="30dp"
+            android:text="SNS: not used"
+            android:textSize="18dp"
+            android:layout_marginLeft="20dp"/>
+
+
+
+    </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -21,10 +49,11 @@
         android:text="TO DO: show the last feeding information"
         android:textSize="18dp"
         android:minHeight="30dp"
+        android:layout_gravity="center_horizontal"
         />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/tvMasterTimer"
         android:text="00:00"
@@ -37,6 +66,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_horizontal"
         >
 
         <TextView
@@ -45,6 +75,7 @@
             android:text="Left: "
             android:textSize="18dp"
             android:minHeight="30dp"
+            android:layout_marginLeft="10dp"
             />
 
         <TextView
@@ -62,6 +93,7 @@
             android:text="Right: "
             android:textSize="18dp"
             android:minHeight="30dp"
+            android:layout_marginLeft="10dp"
             />
 
         <TextView
@@ -71,6 +103,7 @@
             android:text="00:00"
             android:textSize="24dp"
             android:minHeight="30dp"
+            android:layout_marginRight="10dp"
             />
 
 

@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         menuItems.add(new MainActivityMenuOptions("Baby Info", new Intent(this, BabyInfoActivity.class)));
         menuItems.add(new MainActivityMenuOptions("Feeding", new Intent(this, FeedingActivity.class)));
+        menuItems.add(new MainActivityMenuOptions("View History", new Intent(this, ViewFeedingsActivity.class)));
         menuItems.add(new MainActivityMenuOptions("Export", new Intent(this, ExportActivity.class)));
 
         // Initialize the adapter

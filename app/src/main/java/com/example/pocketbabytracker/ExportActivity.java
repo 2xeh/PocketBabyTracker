@@ -131,7 +131,7 @@ public class ExportActivity extends AppCompatActivity {
                             + startMonthString + " "
                             + startDay + ", "
                             + startYear + " - "
-                            + startHour + ":" + startMinute + "hrs"
+                            + startHour + ":" + String.format("%02d", startMinute) + "hrs"
                             + "</h3> <p>"
                             + "<strong>Left Breast: </strong>" + Math.round(feeding.getLeft()/1000) + " seconds <br>"
                             + "<strong>Right Breast: </strong>" + Math.round(feeding.getRight()/1000) + " seconds <br>"
@@ -143,7 +143,7 @@ public class ExportActivity extends AppCompatActivity {
                             + endMonthString + " "
                             + endDay + ", "
                             + endYear + " - "
-                            + endHour + ":" + endMinute + "hrs"
+                            + endHour + ":" + String.format("%02d", endMinute) + "hrs"
                             + "</p> </div> </div>";
 
                 } catch (Exception e) {
@@ -396,88 +396,7 @@ public class ExportActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // An enum to handle names of days of the week
-    public enum DaysOfTheWeek {
-        SUNDAY("Sunday", 1),
-        MONDAY("Monday", 2),
-        TUESDAY("Tuesday", 3),
-        WEDNESDAY("Wednesday", 4),
-        THURSDAY("Thursday", 5),
-        FRIDAY("Friday", 6),
-        SATURDAY("Saturday", 7)
-        ;
 
-        private String desc;
-        private int id;
-
-        private DaysOfTheWeek(String desc, int id) {
-            this.desc = desc;
-            this.id = id;
-        }
-
-        public int getId() { return id; }
-        public String getDesc() { return desc; }
-
-        public static String getName(int id){
-            String selectedDay = SUNDAY.getDesc();
-
-            for (DaysOfTheWeek day : DaysOfTheWeek.values()) {
-                if (day.getId() == id) {
-                    selectedDay = day.getDesc();
-                }
-            }
-            return selectedDay;
-        }
-
-        @Override
-        public String toString() {
-            return desc;
-        }
-    }
-
-    // An enum to handle names of Months
-    public enum MonthNames {
-        JANUARY("January", 0),
-        FEBRUARY("February", 1),
-        MARCH("March", 2),
-        APRIL("April", 3),
-        MAY("May", 4),
-        JUNE("June", 5),
-        JULY("July", 6),
-        AUGUST("August", 7),
-        SEPTEMBER("September", 8),
-        OCTOBER("October", 9),
-        NOVEMBER("November", 10),
-        DECEMBER("December", 11)
-        ;
-
-        private String desc;
-        private int id;
-
-        private MonthNames(String desc, int id) {
-            this.desc = desc;
-            this.id = id;
-        }
-
-        public int getId() { return id; }
-        public String getDesc() { return desc; }
-
-        public static String getName(int id){
-            String selectedDay = JANUARY.getDesc();
-
-            for (DaysOfTheWeek day : DaysOfTheWeek.values()) {
-                if (day.getId() == id) {
-                    selectedDay = day.getDesc();
-                }
-            }
-            return selectedDay;
-        }
-
-        @Override
-        public String toString() {
-            return desc;
-        }
-    }
 
     // A helper method for easy long toasts
     private void makeToast(String message){

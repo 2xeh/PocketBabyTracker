@@ -32,7 +32,8 @@
         <activity android:name=".FeedingActivity" />
         <activity android:name=".ExportActivity" />
         <activity android:name=".HtmlPdfRocketActivity" />
-        <activity android:name=".StopwatchActivity"></activity>
+        <activity android:name=".StopwatchActivity" />
+        <activity android:name=".ViewFeedingsActivity"></activity>
     </application>
 
 </manifest>

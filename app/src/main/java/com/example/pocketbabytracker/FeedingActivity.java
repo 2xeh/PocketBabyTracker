@@ -29,7 +29,8 @@ public class FeedingActivity extends AppCompatActivity {
 
     // controls
     ListView lvFeedingMenu;
-    TextView tvSelectedBabyFeeding;
+    TextView tvSelectedBabyFeeding, tvLastFeeding, tvLastSide, tvSnsUsed;
+    String lastSide = "none";
 
     // Attributes for Master Timer
     boolean isMasterTimerRunning = false;
@@ -78,6 +79,9 @@ public class FeedingActivity extends AppCompatActivity {
 
         Log.d(TAG, "get the controls");
         tvSelectedBabyFeeding = (TextView) findViewById(R.id.tvSelectedBabyFeeding);
+        tvLastFeeding = (TextView) findViewById(R.id.tvLastFeeding);
+        tvLastSide = (TextView) findViewById(R.id.tvLastSide);
+        tvSnsUsed = (TextView) findViewById(R.id.tvSnsUsed);
         lvFeedingMenu = (ListView) findViewById(R.id.lvFeedingMenu);
         tvMasterTimer = (TextView) findViewById(R.id.tvMasterTimer);
         tvLeftTimer = (TextView) findViewById(R.id.tvLeftTimer);
@@ -88,7 +92,6 @@ public class FeedingActivity extends AppCompatActivity {
         leftHandler = new Handler();
         rightHandler = new Handler();
 
-
         // AA learning lesson: if you try to run multiple Chronometers on one screen, they
         // interfere with one another. So instead of multiple Chronometers, I created some custom timers.
 
@@ -96,8 +99,20 @@ public class FeedingActivity extends AppCompatActivity {
         babyName = sharedPreferences.getString("babyName", "");
         tvSelectedBabyFeeding.setText("Feeding baby " + babyName);
 
+        // capture last side parent fed on
+        lastSide = sharedPreferences.getString("lastSide", "none");
+        tvLastSide.setText("Last Side: " + lastSide);
+
         Log.d(TAG, "set the databaseQuery");
         databaseQuery = new DatabaseQuery(this);
+
+        // Because last feeding depends on which child was fed, need to get last feeding from database
+        FeedingElements lastFeeding = databaseQuery.getLastFeeding(babyName);
+        if(lastFeeding != null) {
+            tvLastFeeding.setText("Last Feeding ended: " + lastFeeding.lastFeedingString());
+        } else {
+            tvLastFeeding.setText("This is the first feeding to record for baby " + babyName);
+        }
 
         Log.d(TAG, "fill the list view for controls");
         final ArrayList<FeedingMenuOptions> menuItems = new ArrayList<FeedingMenuOptions>();
@@ -108,6 +123,7 @@ public class FeedingActivity extends AppCompatActivity {
         menuItems.add(new FeedingMenuOptions("Set SNS Quantity", "sns"));
         menuItems.add(new FeedingMenuOptions("Finish", "finish"));
         menuItems.add(new FeedingMenuOptions("Save and Go Back", "back"));
+        menuItems.add(new FeedingMenuOptions("Reset", "cancel"));
 
         Log.d(TAG, "Initialize the list view adapter - for controls");
         FeedingMenuOptionsAdapter adapter = new FeedingMenuOptionsAdapter(this, R.layout.menu_list, menuItems);
@@ -288,9 +304,9 @@ public class FeedingActivity extends AppCompatActivity {
                         break;
 
                     case "sns":
-                        // TODO: add to a text view that this is sns
                         // TODO: if time, improve and make this list view item change color or something
                         snsUsed = true;
+                        tvSnsUsed.setText("SNS: yes");
 
                         // TODO: need to create a dialog to log the bottle qty and type
                         break;
@@ -310,6 +326,10 @@ public class FeedingActivity extends AppCompatActivity {
                     case "back":
                         // Note: onBackPressed() will save the data, persist it, and navigate to previous screen
                         onBackPressed();
+                        break;
+
+                    case "cancel":
+                        resetForm();
                         break;
 
                     default:
@@ -450,9 +470,7 @@ public class FeedingActivity extends AppCompatActivity {
         }
 
         public String getMenuDescription() {return this.menuDescription; }
-        public void setMenuDescription(String menuDescription) { this.menuDescription = menuDescription; }
         public String getMenuIdentifier() { return this.menuIdentifier; }
-        public void setMenuIdentifier(String menuIdentifier) { this.menuIdentifier = menuIdentifier; }
     }
 
 
@@ -519,7 +537,7 @@ public class FeedingActivity extends AppCompatActivity {
         masterSeconds = 0 ;
         masterMinutes = 0 ;
         masterMillis = 0 ;
-        tvMasterTimer.setText("00:00:00");
+        tvMasterTimer.setText("00:00");
     }
 
     private void startLeft() {
@@ -543,7 +561,7 @@ public class FeedingActivity extends AppCompatActivity {
         leftSeconds = 0 ;
         leftMinutes = 0 ;
         leftMillis = 0 ;
-        tvLeftTimer.setText("00:00:00");
+        tvLeftTimer.setText("00:00");
     }
 
     private void startRight() {
@@ -567,7 +585,7 @@ public class FeedingActivity extends AppCompatActivity {
         rightSeconds = 0 ;
         rightMinutes = 0 ;
         rightMillis = 0 ;
-        tvRightTimer.setText("00:00:00");
+        tvRightTimer.setText("00:00");
     }
 
 
@@ -583,10 +601,9 @@ public class FeedingActivity extends AppCompatActivity {
             masterSeconds = masterSeconds % 60;
             masterMillis = (int) (masterUpdateTime % 1000);
 
-            tvMasterTimer.setText("" + masterMinutes + ":"
-                    + String.format("%02d", masterSeconds) + ":"
-                    + String.format("%03d", masterMillis));
-
+            tvMasterTimer.setText("" + String.format("%02d", masterMinutes) + ":"
+                    + String.format("%02d", masterSeconds));
+            // If milliseconds desired, cat this: + ":" + String.format("%03d", masterMillis)
             masterHandler.postDelayed(this, 0);
         }
     };
@@ -602,9 +619,8 @@ public class FeedingActivity extends AppCompatActivity {
             leftSeconds = leftSeconds % 60;
             leftMillis = (int) (leftUpdateTime % 1000);
 
-            tvLeftTimer.setText("" + leftMinutes + ":"
-                    + String.format("%02d", leftSeconds) + ":"
-                    + String.format("%03d", leftMillis));
+            tvLeftTimer.setText("" + String.format("%02d", leftMinutes) + ":"
+                    + String.format("%02d", leftSeconds));
 
             leftHandler.postDelayed(this, 0);
         }
@@ -621,9 +637,8 @@ public class FeedingActivity extends AppCompatActivity {
             rightSeconds = rightSeconds % 60;
             rightMillis = (int) (rightUpdateTime % 1000);
 
-            tvRightTimer.setText("" + rightMinutes + ":"
-                    + String.format("%02d", rightSeconds) + ":"
-                    + String.format("%03d", rightMillis));
+            tvRightTimer.setText("" + String.format("%02d", rightMinutes) + ":"
+                    + String.format("%02d", rightSeconds));
 
             rightHandler.postDelayed(this, 0);
         }

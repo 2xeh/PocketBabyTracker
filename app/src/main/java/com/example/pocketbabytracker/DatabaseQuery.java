@@ -224,6 +224,60 @@ public class DatabaseQuery extends DatabaseObject{
         return feedingElements;
     }
 
+    // Get the last feeding for baby
+    public FeedingElements getLastFeeding(String babyNameParam){
+        FeedingElements feedingElement = null;
+
+        // Query to run, and get the cursor
+        String query = "SELECT * FROM " + FEEDINGS_TABLE + " WHERE " + FEEDINGS_COL_BABY_NAME + " = '" + babyNameParam + "' ORDER BY " + FEEDINGS_COL_START_TIME + " DESC LIMIT 1";
+        Cursor cursor = this.getDbConnection().rawQuery(query, null);
+
+        // we have results by way of a cursor. Iterate through them
+        if(cursor.moveToFirst()){
+            int id = cursor.getInt(0);
+
+            // get the data
+            String startTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_START_TIME));
+            String endTimeString = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_END_TIME));
+            String babyName = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BABY_NAME));
+            String bottle = cursor.getString(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE));
+            int bottleQty = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_BOTTLE_QTY));
+            int left = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_LEFT));
+            int right = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_RIGHT));
+            int snsInteger = cursor.getInt(cursor.getColumnIndexOrThrow(FEEDINGS_COL_SNS));
+
+            // convert sns from an integer to a boolean where 1 would be true
+            boolean sns = (snsInteger == 1);
+
+            // parse the start time and end times
+            long startTime = 0L;
+            long endTime = 0L;
+            try {
+                startTime = Long.parseLong(startTimeString);
+                endTime = Long.parseLong(endTimeString);
+            } catch (NumberFormatException e) {
+                // intentionally empty. Accept 0L as entry for now.
+            }
+
+            // create and add FeedingElements entry to the list
+            feedingElement = new FeedingElements(
+                    startTime,
+                    endTime,
+                    babyName,
+                    bottle,
+                    bottleQty,
+                    left,
+                    right,
+                    sns);
+        }
+
+        // don't forget to close the cursor before returning the data
+        cursor.close();
+
+        return feedingElement;
+
+    }
+
     // Let's persist a baby
     public boolean setNewBaby(BabyElements newBaby){
         boolean result = false;
