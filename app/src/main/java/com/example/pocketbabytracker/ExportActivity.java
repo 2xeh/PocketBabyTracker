@@ -11,6 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,7 +38,9 @@ import java.util.Map;
 public class ExportActivity extends AppCompatActivity {
 
     private final String TAG = "Andrea-Export";
-    TextView tvExportedFilePath;
+    TextView tvSelectedBaby;
+    private static final int MENU_FIRST = Menu.FIRST;
+
     private String fileName;
     private static final int READ_WRITE_ACCESS_CODE = 1;
     private DatabaseQuery databaseQuery;
@@ -45,6 +49,7 @@ public class ExportActivity extends AppCompatActivity {
     private String babyReport = "";
     private File pdfToEmail;
     private boolean isReportEmpty = true;
+
 
     String startHtmlString = "<!DOCTYPE html> <html> <head> <meta charset='utf-8'> <meta name='viewport' content='width=device-width, initial-scale=1'> <title>PocketBaby Tracker - Report</title> <script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js'> </script> <script type='text/javascript' src='http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js'> </script> <link href='http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css' rel='stylesheet' type='text/css'> <link href='http://pingendo.github.io/pingendo-bootstrap/themes/default/bootstrap.css' rel='stylesheet' type='text/css'> </head> <body> <div class='section' > <div class='container' style='margin:100px;'>";
     String endHtmlString = "</div> </div> </body> </html>";
@@ -66,15 +71,14 @@ public class ExportActivity extends AppCompatActivity {
         sharedPreferences = this.getSharedPreferences("pocketBaby", this.MODE_PRIVATE);
         babyName = sharedPreferences.getString("babyName", "");
 
-        // a control to show the exported path
-        tvExportedFilePath = (TextView) findViewById(R.id.tvExportedFilePath);
+        // a control to show current baby selected
+        tvSelectedBaby = (TextView) findViewById(R.id.tvExportCurrentBaby);
+        Log.d(TAG, "Getting child from preferences and setting on screen");
+        tvSelectedBaby.setText("Selected child: " + babyName);
 
         // Get the HTML string to convert to pdf
         babyReport = generateHtmlString();
         Log.d("htmlString", babyReport);
-
-
-        // todo: add options for baby name selection ?
 
     }
 
@@ -166,15 +170,15 @@ public class ExportActivity extends AppCompatActivity {
     }
 
     public void requestReadWritePermissions() {
-        if( !( ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-            && ContextCompat.checkSelfPermission(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        if( !( ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
             )){
 
             // Show rationale and request permission.
             ActivityCompat.requestPermissions(
                     ExportActivity.this,
                     new String[]{
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
                     }, 1);
         }
     }
@@ -247,22 +251,8 @@ public class ExportActivity extends AppCompatActivity {
                                     Log.d(TAG, "Closing stream");
                                     opStream.close();
 
-                                    tvExportedFilePath.setText("File downloaded to: " + pdfFile.getAbsolutePath());
+                                    Log.d(TAG, "File downloaded to: " + pdfFile.getAbsolutePath());
                                     pdfToEmail = pdfFile;
-
-                                    /* TODO: I'm not sure if we need to send broadcast. Delete later.
-                                    Log.d(TAG, "sending broadcast");
-                                    // now we need to broadcast that the file was downloaded
-                                    MediaScannerConnection.scanFile(ExportActivity.this, new String[] { pdfFile.getAbsolutePath()},
-                                            null,
-                                            new MediaScannerConnection.OnScanCompletedListener() {
-                                                @Override
-                                                public void onScanCompleted(String path, Uri uri) {
-                                                }
-                                            });
-
-                                    Log.d(TAG, "broadcast sent");
-                                    */
 
                                 }
                             } catch (Exception ex) {
@@ -287,18 +277,12 @@ public class ExportActivity extends AppCompatActivity {
         @Override
         public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
-            Log.d(TAG, "Checking permissions: (1)" + (permissions.length == 2)
-                    + " (2)" + (permissions[0] == Manifest.permission.READ_EXTERNAL_STORAGE)
-                    + " (3)" + (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    + " (4)" + (permissions[1] == Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    + " (5)" + (grantResults[1] == PackageManager.PERMISSION_GRANTED));
-
-
+            // Caution: string comparison for permissions
             if (requestCode == READ_WRITE_ACCESS_CODE) {
                 if ((permissions.length == 2) &&
-                        (permissions[0] == Manifest.permission.READ_EXTERNAL_STORAGE) &&
+                        (permissions[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE)) &&
                         (grantResults[0] == PackageManager.PERMISSION_GRANTED) &&
-                        (permissions[1] == Manifest.permission.WRITE_EXTERNAL_STORAGE) &&
+                        (permissions[1].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) &&
                         (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
 
                     Log.d(TAG, "Read write permissions are granted");
@@ -366,6 +350,50 @@ public class ExportActivity extends AppCompatActivity {
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(ExportActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Part 1 of options menu with baby names
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // let's try to get access to the menu
+        int menuCounter = MENU_FIRST;
+
+        List<BabyElements> babies = databaseQuery.getAllBabies();
+
+        // add each baby to the menu
+        for(BabyElements baby : babies){
+            menu.add(0, menuCounter++, Menu.NONE, baby.getBabyName());
+        }
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.options_menu, menu);
+        return true;
+    }
+
+    // Part 2 of options menu with baby names
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        String babyName = item.getTitle().toString();
+
+        tvSelectedBaby.setText("Selected child: " + babyName);
+
+
+        // instantiate the SharedPreferences Editor and put in the new values
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("babyName", babyName);
+
+        // commit changes made by the editor
+        if (editor.commit()) {
+            // update a TextView?
+        } else {
+            makeToast("Unable to set baby.");
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     // An enum to handle names of days of the week
@@ -451,4 +479,8 @@ public class ExportActivity extends AppCompatActivity {
         }
     }
 
+    // A helper method for easy long toasts
+    private void makeToast(String message){
+        Toast.makeText(ExportActivity.this, message, Toast.LENGTH_LONG).show();
+    }
 }

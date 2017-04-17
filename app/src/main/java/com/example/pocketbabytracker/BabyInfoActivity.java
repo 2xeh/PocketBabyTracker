@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BabyInfoActivity extends AppCompatActivity {
 
@@ -27,6 +30,7 @@ public class BabyInfoActivity extends AppCompatActivity {
     private TextView tvBabyInfoSelected;
     private SharedPreferences sharedPreferences;
     BabyInfoMenuOptionsAdapter babyAdapter;
+    private static final int MENU_FIRST = Menu.FIRST;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +49,6 @@ public class BabyInfoActivity extends AppCompatActivity {
 
         Log.d(TAG, "Getting child from preferences and setting on screen");
         tvBabyInfoSelected.setText("Selected child: " + sharedPreferences.getString("babyName", ""));
-
 
         Log.d(TAG, "set the databaseQuery");
         databaseQuery = new DatabaseQuery(this);
@@ -228,6 +231,56 @@ public class BabyInfoActivity extends AppCompatActivity {
             }
             return view;
         }
+    }
+
+
+    // Part 1 of options menu with baby names
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // let's try to get access to the menu
+        int menuCounter = MENU_FIRST;
+
+        List<BabyElements> babies = databaseQuery.getAllBabies();
+
+        // add each baby to the menu
+        for(BabyElements baby : babies){
+            menu.add(0, menuCounter++, Menu.NONE, baby.getBabyName());
+        }
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.options_menu, menu);
+        return true;
+    }
+
+    // Part 2 of options menu with baby names
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        String babyName = item.getTitle().toString();
+
+        tvBabyInfoSelected.setText("Selected child: " + babyName);
+
+
+        // instantiate the SharedPreferences Editor and put in the new values
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("babyName", babyName);
+
+        // commit changes made by the editor
+        if (editor.commit()) {
+            // update a TextView?
+        } else {
+            makeToast("Unable to set baby.");
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this, MainActivity.class));
     }
 
     private void makeToast(String message){

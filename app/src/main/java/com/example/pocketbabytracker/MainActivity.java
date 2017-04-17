@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     // class to define properties of menu items
     class MainActivityMenuOptions {
         private String menuDescription;
@@ -117,9 +116,10 @@ public class MainActivity extends AppCompatActivity {
         public void setMenuDescription(String menuDescription) { this.menuDescription = menuDescription; }
         public Intent getMenuIntent() { return this.menuIntent; }
         public void setMenuIntent(Intent menuIntent) { this.menuIntent = menuIntent; }
-    } // end of MainActivityMenuOptions nested class
+    }
 
 
+    // Part 1 of options menu with baby names
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // let's try to get access to the menu
@@ -137,11 +137,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void deleteAllTableData(View view){
-        boolean result = databaseQuery.deleteTableData();
-        Log.d(TAG, "Deleted all records from tables: " + result);
-    }
-
+    // Part 2 of options menu with baby names
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -167,6 +163,13 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // A temporary method to reset all table data
+    public void deleteAllTableData(View view){
+        boolean result = databaseQuery.deleteTableData();
+        Log.d(TAG, "Deleted all records from tables: " + result);
+    }
+
+    // A helper method for easy long toasts
     private void makeToast(String message){
         Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
     }

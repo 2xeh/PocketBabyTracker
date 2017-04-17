@@ -67,11 +67,13 @@
             tools:targetApi="21"
             />
 
-        <Button
+        <ListView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/bt_add_baby"
-            android:onClick="addBaby"
+            android:layout_height="match_parent"
+            android:textAlignment="center"
+            android:id="@+id/lvAddChildControls"
+            android:divider="@drawable/list_divider"
+            android:dividerHeight="3px"
             />
 
     </LinearLayout>
