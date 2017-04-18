@@ -193,11 +193,13 @@ public class ExportActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getBaseContext(), "Network is not available", Toast.LENGTH_SHORT).show();
         }
+
+        //sendEmail();
     }
 
         // from PDF to HTML Rocket
         public void ConvertHTMLStringToPDF() {
-
+            // TODO: very IMPORTANT!!!! put this into an async task. onPostExecute prepares email to send
             Log.d(TAG, "Starting ConvertHTMLStringToPDF()");
 
             String apiKey = "4d1bebd1-a13c-47f8-bb8a-235e7d746bf9";

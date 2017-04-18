@@ -48,30 +48,29 @@ public class ViewFeedingsActivity extends AppCompatActivity {
         Log.d(TAG, "get the shared preferences");
         sharedPreferences = this.getSharedPreferences("pocketBaby", this.MODE_PRIVATE);
         babyName = sharedPreferences.getString("babyName", "");
-
         Log.d(TAG, "selected baby: " + babyName);
 
         // Get the view
         wvViewFeedings = (WebView) findViewById(R.id.wvViewFeedings);
-
-
-//        wvViewFeedings.addJavascriptInterface(new WebAppInterface(this), "android");
 
         Log.d(TAG, "enabling javascript");
         // Enable JavaScript
         WebSettings webSettings = wvViewFeedings.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
+        loadReport();
+
+    }
+
+    private void loadReport(){
         Log.d(TAG, "generating report html");
         // Generate the report html
         babyReport = generateHtmlString();
         Log.d(TAG, babyReport);
 
-        Log.d(TAG, "trying to load data into the webview");
+        Log.d(TAG, "Load the generated html into the webview");
         // Using a referenced file
         wvViewFeedings.loadData(babyReport, "text/html", null);
-
-        Log.d(TAG, "end of onCreate()");
     }
 
     private String generateHtmlString() {
@@ -181,10 +180,7 @@ public class ViewFeedingsActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        String babyName = item.getTitle().toString();
-
-        tvSelectedBaby.setText("Selected child: " + babyName);
-
+        babyName = item.getTitle().toString();
 
         // instantiate the SharedPreferences Editor and put in the new values
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -192,7 +188,7 @@ public class ViewFeedingsActivity extends AppCompatActivity {
 
         // commit changes made by the editor
         if (editor.commit()) {
-            // update a TextView?
+            loadReport();
         } else {
             makeToast("Unable to set baby.");
         }

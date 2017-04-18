@@ -191,14 +191,15 @@ public class BabyInfoActivity extends AppCompatActivity {
 
             BabyElements menuItem = items.get(position);
 
+            // Set baby name, biological sex, and birthday into the list item
             if (menuItem != null) {
-                TextView header = (TextView) view.findViewById(R.id.tvBabiesMenuItem);
+                TextView tvHeader = (TextView) view.findViewById(R.id.tvBabiesHeader);
+                TextView tvBio = (TextView) view.findViewById(R.id.tvBabyBioSex);
+                TextView tvBirthday = (TextView) view.findViewById(R.id.tvBabyBirthday);
 
-                // TODO: need to get a summary of baby info on the list from here, refer to RSS
-                header.setText(menuItem.getBabyName());
-
-                // TODO: can probably style the list item based on whether or not this is the selected baby
-
+                tvHeader.setText(menuItem.getBabyName());
+                tvBio.setText(menuItem.getGender());
+                tvBirthday.setText(menuItem.getBirthday());
 
             }
             return view;

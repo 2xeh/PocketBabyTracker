@@ -454,7 +454,15 @@ public class FeedingActivity extends AppCompatActivity {
         Log.d(TAG, "created feedingToSave");
 
         // set this data as the last feeding
+        tvLastSide.setText(lastSide);
         tvLastFeeding.setText(feedingToSave.lastFeedingString());
+
+        // save last side fed on to shared preferences
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("lastSide", lastSide);
+        if (!editor.commit()) {
+            makeToast("Unable to set last fed side.");
+        }
 
         // persist the data
         boolean feedingSaveResult = databaseQuery.setNewFeeding(feedingToSave);
